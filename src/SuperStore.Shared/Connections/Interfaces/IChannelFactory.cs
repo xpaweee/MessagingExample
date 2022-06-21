@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace SuperStore.Shared.Connections.Interfaces
 {
-    internal interface IChannelFactory
+    public interface IChannelFactory
     {
         IModel Create();
     }

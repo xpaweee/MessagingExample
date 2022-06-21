@@ -5,7 +5,7 @@ namespace SuperStore.Shared.Connections
     /// <summary>
     /// Klasa pomocnicza umożliwająca utworzenie Connection od RabbitMQ per Thread
     /// </summary>
-    internal sealed class ChannelAccessor
+    public sealed class ChannelAccessor
     {
         private static readonly ThreadLocal<ChannelHolder> Holder = new ();
 

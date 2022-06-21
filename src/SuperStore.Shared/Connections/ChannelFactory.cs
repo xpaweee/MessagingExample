@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace SuperStore.Shared.Connections
 {
-    internal sealed class ChannelFactory : IChannelFactory
+    public sealed class ChannelFactory : IChannelFactory
     {
         private readonly IConnection _connection;
         private readonly ChannelAccessor _channelAccessor;

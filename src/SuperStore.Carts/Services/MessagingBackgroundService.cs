@@ -1,28 +1,43 @@
 ﻿using SuperStore.Carts.Messages;
+using SuperStore.Shared.Connections.Interfaces;
 using SuperStore.Shared.Subscribers.Interfaces;
 
 namespace SuperStore.Carts.Services
 {
     internal sealed class MessagingBackgroundService : BackgroundService
     {
+        private readonly IChannelFactory _channelFactory;
         private readonly IMessageSubscriber _messageSubscriber;
         private readonly ILogger<MessagingBackgroundService> _logger;
 
-        public MessagingBackgroundService(IMessageSubscriber messageSubscriber, ILogger<MessagingBackgroundService> logger)
+        public MessagingBackgroundService(IChannelFactory channelFactory,IMessageSubscriber messageSubscriber, ILogger<MessagingBackgroundService> logger)
         {
+            _channelFactory = channelFactory;
             _messageSubscriber = messageSubscriber;
             _logger = logger;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            var channel = _channelFactory.Create();
+
+            channel.ExchangeDeclare("Funds", "topic", false, false, null);
+
             _messageSubscriber
-                    .SubscribeMessage<FundsMessage>("carts-service-funds-message", "FundsMessage", "Funds", (msg, args) =>
+                    .SubscribeMessage<FundsMessage>("carts-service-eu-many-words-queue", "EU.#", "Funds", (msg, args) =>
                     {
-                        _logger.LogInformation($"Recived message for customer: {msg.CustomerId} | Funds: {msg.CurrentFunds}");
+                        _logger.LogInformation($"Recived EU multiple-word message for customer: {msg.CustomerId} | Funds: {msg.CurrentFunds}");
 
                         return Task.CompletedTask;
                     });
+
+            _messageSubscriber
+                 .SubscribeMessage<FundsMessage>("carts-service-eu-one-word-queue", "EU.*", "Funds", (msg, args) =>
+                 {
+                     _logger.LogInformation($"Recived EU single-word message for customer: {msg.CustomerId} | Funds: {msg.CurrentFunds}");
+
+                     return Task.CompletedTask;
+                 });
 
 
         }

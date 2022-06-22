@@ -21,8 +21,12 @@ namespace SuperStore.Shared.Subscribers
         }
         IMessageSubscriber IMessageSubscriber.SubscribeMessage<TMessage>(string queue, string routingKey, string exchange, Func<TMessage, BasicDeliverEventArgs, Task> handle)
         {
+            _channel.ExchangeDeclare(exchange, "topic", durable: false, autoDelete: false, null);
             _channel.QueueDeclare(queue, false, false, false);
             _channel.QueueBind(queue, exchange, routingKey);
+
+            //Prefetch size
+            //_channel.BasicQos(0, 4, false);
 
             var consumer = new EventingBasicConsumer(_channel);
             consumer.Received += async (model, ea) =>
@@ -31,9 +35,13 @@ namespace SuperStore.Shared.Subscribers
                 var message = JsonSerializer.Deserialize<TMessage>(Encoding.UTF8.GetString(body));
 
                 await handle(message, ea);
+
+                _channel.BasicAck(ea.DeliveryTag, multiple: false);
+                //_channel.BasicNack(ea.DeliveryTag, multiple: false, requeue: false);
+                //_channel.BasicReject(ea.DeliveryTag, requeue: true);
             };
 
-            _channel.BasicConsume(queue, true, consumer);
+            _channel.BasicConsume(queue, autoAck: false, consumer);
 
 
             return this;

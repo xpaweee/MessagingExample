@@ -1,7 +1,12 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using RabbitMQ.Client;
+using SuperStore.Shared.Accessors;
+using SuperStore.Shared.Accessors.Interfaces;
+using SuperStore.Shared.Base.Interfaces;
 using SuperStore.Shared.Connections;
 using SuperStore.Shared.Connections.Interfaces;
+using SuperStore.Shared.Dispatchers;
+using SuperStore.Shared.Dispatchers.Interfaces;
 using SuperStore.Shared.Publishers;
 using SuperStore.Shared.Publishers.Interfaces;
 using SuperStore.Shared.Subscribers;
@@ -30,6 +35,14 @@ namespace SuperStore.Shared
             services.AddSingleton<IChannelFactory, ChannelFactory>();
             services.AddSingleton<IMessagePublisher, MessagePublisher>();
             services.AddSingleton<IMessageSubscriber, MessageSubscriber>();
+            services.AddSingleton<IMessageDispatcher, MessageDispatcher>();
+            services.AddSingleton<IMessageIdAccessor, MessageIdAccessor>();
+            services.Scan(cfg => cfg.FromAssemblies(AppDomain.CurrentDomain.GetAssemblies())
+                .AddClasses(c => c.AssignableTo(typeof(IMessageHandler<>)))
+                .AsImplementedInterfaces()
+                .WithScopedLifetime());
+                
+
 
             return services;
         }

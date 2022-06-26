@@ -1,5 +1,6 @@
 ﻿using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using SuperStore.Shared.Accessors.Interfaces;
 using SuperStore.Shared.Connections.Interfaces;
 using SuperStore.Shared.Subscribers.Interfaces;
 using System;
@@ -14,10 +15,12 @@ namespace SuperStore.Shared.Subscribers
     internal sealed class MessageSubscriber : IMessageSubscriber
     {
         private readonly IModel _channel;
+        private readonly IMessageIdAccessor _messageIdAccessor;
 
-        public MessageSubscriber(IChannelFactory channelFactory)
+        public MessageSubscriber(IChannelFactory channelFactory, IMessageIdAccessor messageIdAccessor)
         {
             _channel = channelFactory.Create();
+            _messageIdAccessor = messageIdAccessor;
         }
         IMessageSubscriber IMessageSubscriber.SubscribeMessage<TMessage>(string queue, string routingKey, string exchange, Func<TMessage, BasicDeliverEventArgs, Task> handle)
         {
@@ -33,6 +36,8 @@ namespace SuperStore.Shared.Subscribers
             {
                 var body = ea.Body.ToArray();
                 var message = JsonSerializer.Deserialize<TMessage>(Encoding.UTF8.GetString(body));
+
+                _messageIdAccessor.SetMessageId(ea.BasicProperties.MessageId);
 
                 await handle(message, ea);
 

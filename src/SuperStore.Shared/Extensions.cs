@@ -21,7 +21,7 @@ namespace SuperStore.Shared
 {
     public static class Extensions
     {
-        public static IServiceCollection AddMessagging(this IServiceCollection services)
+        public static IServiceCollection AddMessagging(this IServiceCollection services, Action<IMessagingConfiguration> configuration = null)
         {
             var factory = new ConnectionFactory
             {
@@ -41,8 +41,8 @@ namespace SuperStore.Shared
                 .AddClasses(c => c.AssignableTo(typeof(IMessageHandler<>)))
                 .AsImplementedInterfaces()
                 .WithScopedLifetime());
-                
 
+            configuration?.Invoke(new MessagingConfiguration(services));
 
             return services;
         }
